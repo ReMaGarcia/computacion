@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inventario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-container {
+            max-width: 800px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #0f3b5c 0%, #1a5276 100%);
+            padding: 1.5rem 2rem;
+        }
+
+        .form-header h1 {
+            color: white;
+            font-weight: 700;
+            font-size: 1.7rem;
+        }
+
+        .form-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #2c3e50;
+        }
+
+        .form-group label .required-star {
+            color: #e53e3e;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background-color: #fcfdfe;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            transition: all 0.2s;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .form-control:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+            outline: none;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.8rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 40px;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2c6e9e;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1f557d;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <div class="form-header">
+        <h1>Sistema de Control de Inventario</h1>
+    </div>
+
+    <div class="form-body">
+        <form action="php/recibirProductos.php" method="POST">
+            <div class="form-group">
+                <label>
+                    Nombre <span class="required-star">*</span>
+                </label>
+                <input type="text" 
+                       class="form-control" 
+                       name="nombre" 
+                       maxlength="20" 
+                       placeholder="Ej: Teclado Mecánico" 
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Descripción <span class="required-star">*</span>
+                </label>
+                <textarea class="form-control" 
+                          name="descripcion" 
+                          maxlength="40" 
+                          rows="3" 
+                          placeholder="Descripción del producto" 
+                          required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Precio unitario (€) <span class="required-star">*</span>
+                </label>
+                <input type="number" 
+                       class="form-control" 
+                       name="precio" 
+                       step="0.01" 
+                       min="0" 
+                       placeholder="0.00" 
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Cantidad en stock <span class="required-star">*</span>
+                </label>
+                <input type="number" 
+                       class="form-control" 
+                       name="cantidad" 
+                       step="1" 
+                       min="0" 
+                       placeholder="0" 
+                       required>
+            </div>
+
+            <div class="form-actions">
+                <button type="reset" class="btn btn-secondary">
+                    🗑️ Limpiar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    💾 Guardar producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    // Obtener referencias a los elementos
+    const form = document.getElementById('productForm');
+    const nombre = document.getElementById('nombre');
+    const descripcion = document.getElementById('descripcion');
+    const precio = document.getElementById('precio');
+    const cantidad = document.getElementById('cantidad');
+    const successMessage = document.getElementById('successMessage');
+
+    // Función para validar el formulario
+    function validarFormulario() {
+        let esValido = true;
+        
+        // Limpiar errores anteriores
+        limpiarErrores();
+        
+        // Validar nombre
+        if (!nombre.value.trim()) {
+            mostrarError('nombre', 'El nombre es obligatorio');
+            esValido = false;
+        } else if (nombre.value.length > 20) {
+            mostrarError('nombre', 'El nombre no puede superar 20 caracteres');
+            esValido = false;
+        }
+        
+        // Validar descripción
+        if (!descripcion.value.trim()) {
+            mostrarError('descripcion', 'La descripción es obligatoria');
+            esValido = false;
+        } else if (descripcion.value.length > 40) {
+            mostrarError('descripcion', 'La descripción no puede superar 40 caracteres');
+            esValido = false;
+        }
+        
+        // Validar precio
+        if (precio.value === '') {
+            mostrarError('precio', 'El precio es obligatorio');
+            esValido = false;
+        } else if (parseFloat(precio.value) < 0) {
+            mostrarError('precio', 'El precio no puede ser negativo');
+            esValido = false;
+        }
+        
+        // Validar cantidad
+        if (cantidad.value === '') {
+            mostrarError('cantidad', 'La cantidad es obligatoria');
+            esValido = false;
+        } else if (!Number.isInteger(parseFloat(cantidad.value))) {
+            mostrarError('cantidad', 'La cantidad debe ser un número entero');
+            esValido = false;
+        } else if (parseInt(cantidad.value) < 0) {
+            mostrarError('cantidad', 'La cantidad no puede ser negativa');
+            esValido = false;
+        }
+        
+        return esValido;
+    }
+    
+    // Función para mostrar error
+    function mostrarError(campo, mensaje) {
+        const campoElement = document.getElementById(campo);
+        const errorElement = document.getElementById(campo + 'Error');
+        
+        campoElement.classList.add('error');
+        errorElement.textContent = mensaje;
+    }
+    
+    // Función para limpiar errores
+    function limpiarErrores() {
+        const campos = ['nombre', 'descripcion', 'precio', 'cantidad'];
+        
+        campos.forEach(campo => {
+            const campoElement = document.getElementById(campo);
+            const errorElement = document.getElementById(campo + 'Error');
+            
+            campoElement.classList.remove('error');
+            errorElement.textContent = '';
+        });
+    }
+    
+    // Función para limpiar todo el formulario
+    function limpiarFormulario() {
+        form.reset();
+        limpiarErrores();
+        successMessage.style.display = 'none';
+    }
+    
+    // Evento al enviar el formulario
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevenir envío normal
+        
+        if (validarFormulario()) {
+            // Si es válido, enviar con fetch (AJAX)
+            const formData = new FormData(form);
+            
+            fetch('php/recibirProductos.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Mostrar mensaje de éxito
+                successMessage.style.display = 'block';
+                // Limpiar formulario
+                limpiarFormulario();
+                // Ocultar mensaje después de 3 segundos
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                alert('❌ Error al guardar: ' + error);
+            });
+        }
+    });
+    
+    // Limpiar error al escribir en un campo
+    nombre.addEventListener('input', function() {
+        this.classList.remove('error');
+        document.getElementById('nombreError').textContent = '';
+    });
+    
+    descripcion.addEventListener('input', function() {
+        this.classList.remove('error');
+        document.getElementById('descripcionError').textContent = '';
+    });
+    
+    precio.addEventListener('input', function() {
+        this.classList.remove('error');
+        document.getElementById('precioError').textContent = '';
+    });
+    
+    cantidad.addEventListener('input', function() {
+        this.classList.remove('error');
+        document.getElementById('cantidadError').textContent = '';
+    });
+    
+    // Botón limpiar
+    document.getElementById('btnLimpiar').addEventListener('click', function() {
+        limpiarFormulario();
+    });
+</script>
+</body>
+</html>
